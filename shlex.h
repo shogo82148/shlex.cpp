@@ -1,0 +1,4 @@
+#ifndef SHOGO82148_SHLEX_H_
+#define SHOGO82148_SHLEX_H_
+
+#endif // SHOGO82148_SHLEX_H_
