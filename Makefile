@@ -4,5 +4,5 @@ help: ## Show this help
 
 .PHONY: test
 test: ## Run tests
-	g++ test.cpp shlex.cpp -o test
+	g++ -Wall -Wextra -o test test.cpp shlex.cpp
 	./test
