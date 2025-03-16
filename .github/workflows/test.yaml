@@ -4,9 +4,28 @@ on:
   pull_request:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  linux:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: g++ --version
+      - name: run test
+        run: make test
+
+  macos:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+      - run: g++ --version
+      - name: run test
+        run: make test
+
+  windows:
+    runs-on: windows-2019
     steps:
       - uses: actions/checkout@v4
       - name: run test
-        run: make test
+        shell: cmd
+        run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          nmake -f Makefile.msvc test

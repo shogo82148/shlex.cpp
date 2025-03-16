@@ -1,0 +1,20 @@
+CC = cl.exe
+CXXC = cl.exe
+LINK = link.exe
+MACHINE = x64
+
+CFLAGS = /EHsc /O2 /GL /GA /Ob2 /nologo /W3 /MT /Zi /wd4800 /wd4305 /wd4244
+LDFLAGS = /nologo /OPT:REF /OPT:ICF /LTCG /NXCOMPAT /DYNAMICBASE /MACHINE:$(MACHINE) ADVAPI32.LIB
+
+OBJ = test.obj shlex.obj
+
+.c.obj:
+	$(CC) $(CFLAGS) -c $<
+
+.cpp.obj:
+	$(CC) $(CFLAGS) -c $<
+
+.PHONY: test
+test: $(OBJ) ## Run tests
+	$(LINK) /out:test.exe $(OBJ)
+	test.exe
