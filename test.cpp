@@ -138,12 +138,62 @@ static void testOptional(void)
 
 static void testSplit(void)
 {
-  is(shlex::split("x"), split("x", '|'), "split empty string");
-  is(shlex::split("foo bar"), split("foo|bar", '|'), "split foo bar");
+  // basic tests
+  is(shlex::split("x"), split("x", '|'), "split single character");
+  is(shlex::split("foo bar"), split("foo|bar", '|'), "split 'foo bar'");
   is(shlex::split(" foo bar"), split("foo|bar", '|'), "split ' foo bar'");
   is(shlex::split(" foo bar "), split("foo|bar", '|'), "split ' foo bar '");
-  is(shlex::split("foo   bar    bla     fasel"), split("foo|bar|bla|fasel", '|'), "split foo   bar    bla     fasel");
-  is(shlex::split("x y  z              xxxx"), split("x|y|z|xxxx", '|'), "split x y  z              xxxx");
+  is(shlex::split("foo   bar    bla     fasel"), split("foo|bar|bla|fasel", '|'), "split 'foo   bar    bla     fasel'");
+  is(shlex::split("x y  z              xxxx"), split("x|y|z|xxxx", '|'), "split 'x y  z              xxxx'");
+
+  // escaped characters
+  is(shlex::split("\\x bar"), split("x|bar", '|'), "split '\\x bar'");
+  is(shlex::split("\\ x bar"), split(" x|bar", '|'), "split '\\ x bar'");
+  is(shlex::split("\\ bar"), split(" bar", '|'), "split '\\ bar'");
+  is(shlex::split("foo \\x bar"), split("foo|x|bar", '|'), "split 'foo \\x bar'");
+  is(shlex::split("foo \\ x bar"), split("foo| x|bar", '|'), "split 'foo \\ x bar'");
+  is(shlex::split("foo \\ bar"), split("foo| bar", '|'), "split 'foo \\ bar'");
+
+  // quotes
+  is(shlex::split("foo \"bar\" bla"), split("foo|bar|bla", '|'), "split 'foo \"bar\" bla'");
+  is(shlex::split("\"foo\" \"bar\" \"bla\""), split("foo|bar|bla", '|'), "split '\"foo\" \"bar\" \"bla\"'");
+  is(shlex::split("\"foo\" bar \"bla\""), split("foo|bar|bla", '|'), "split '\"foo\" bar \"bla\"'");
+  is(shlex::split("\"foo\" bar bla"), split("foo|bar|bla", '|'), "split '\"foo\" bar bla'");
+  is(shlex::split("foo 'bar' bla"), split("foo|bar|bla", '|'), "split 'foo 'bar' bla'");
+  is(shlex::split("'foo' 'bar' 'bla'"), split("foo|bar|bla", '|'), "split ''foo' 'bar' 'bla''");
+  is(shlex::split("'foo' bar 'bla'"), split("foo|bar|bla", '|'), "split ''foo' bar 'bla''");
+  is(shlex::split("'foo' bar bla"), split("foo|bar|bla", '|'), "split ''foo' bar bla'");
+
+  // special cases
+  is(shlex::split("blurb foo\"bar\"bar\"fasel\" baz"), split("blurb|foobarbarfasel|baz", '|'), "split 'blurb foo\"bar\"bar\"fasel\" baz'");
+  is(shlex::split("blurb foo'bar'bar'fasel' baz"), split("blurb|foobarbarfasel|baz", '|'), "split 'blurb foo'bar'bar'fasel' baz'");
+  is(shlex::split("\"\""), split("", '|'), "split '\"\"'");
+  is(shlex::split("''"), split("", '|'), "split ''''");
+  is(shlex::split("foo \"\" bar"), split("foo||bar", '|'), "split 'foo \"\" bar'");
+  is(shlex::split("foo '' bar"), split("foo||bar", '|'), "split 'foo '' bar'");
+  is(shlex::split("foo \"\" \"\" \"\" bar"), split("foo||||bar", '|'), "split 'foo \"\" \"\" \"\" bar'");
+  is(shlex::split("foo '' '' '' bar"), split("foo||||bar", '|'), "split 'foo '' '' '' bar'");
+  is(shlex::split("\\\""), split("\"", '|'), "split '\\\"'");
+  is(shlex::split("\"\\\"\""), split("\"", '|'), "split '\"\\\"\"'");
+  is(shlex::split("\"foo\\ bar\""), split("foo\\ bar", '|'), "split '\"foo\\ bar\"'");
+  is(shlex::split("foo\\ bar"), split("foo\\ bar", '|'), "split 'foo\\ bar'");
+  is(shlex::split("foo\\ bar\""), split("foo\\ bar\"", '|'), "split 'foo\\ bar\"'");
+  is(shlex::split("foo\\\" bar\""), split("foo\\|bar\"", '|'), "split 'foo\\\" bar\"'");
+  is(shlex::split("foo\\ bar\" dfadf"), split("foo\\ bar\"|dfadf", '|'), "split 'foo\\ bar\" dfadf'");
+  is(shlex::split("foo\\\\ bar\" dfadf"), split("foo\\\\ bar\"|dfadf", '|'), "split 'foo\\\\ bar\" dfadf'");
+  is(shlex::split("foo\\\\x bar\" dfadf"), split("foo\\\\x bar\"|dfadf", '|'), "split 'foo\\\\x bar\" dfadf'");
+  is(shlex::split("foo\\x bar\" dfadf"), split("foo\\x bar\"|dfadf", '|'), "split 'foo\\x bar\" dfadf'");
+  is(shlex::split("\\'"), split("'", '|'), "split '\\''");
+  is(shlex::split("'foo\\ bar'"), split("foo\\ bar", '|'), "split ''foo\\ bar''");
+  is(shlex::split("'foo\\\\ bar'"), split("foo\\\\ bar", '|'), "split ''foo\\\\ bar''");
+  is(shlex::split("foo\\ x\\x"), split("foo|xx", '|'), "split 'foo\\ x\\x'");
+  is(shlex::split("foo\\ x\\x\""), split("foo|xx\"", '|'), "split 'foo\\ x\\x\"'");
+  is(shlex::split("foo\\ x\\x\\\"foobar\""), split("foo|xx\\foobar", '|'), "split 'foo\\ x\\x\\\"foobar\"'");
+  is(shlex::split("foo\\ x\\x\\\"'foobar'"), split("foo|xx\\'foobar'", '|'), "split 'foo\\ x\\x\\\"'foobar''");
+  is(shlex::split("foo\\ x\\x\\\"'fo'obar' 'don'\\''t'"), split("foo|xx\\'fo'obar'|don't", '|'), "split 'foo\\ x\\x\\\"'fo'obar' 'don'\\''t''");
+  is(shlex::split("foo\\ x\\x\\\"'fo'obar' 'don'\\''t' \\"), split("foo|xx\\'fo'obar'|don't|\\", '|'), "split 'foo\\ x\\x\\\"'fo'obar' 'don'\\''t' \\'");
+  is(shlex::split(":-) ;-)"), split(":-)|;-)", '|'), "split ':-) ;-)'");
+  is(shlex::split("áéíóú"), split("áéíóú", '|'), "split 'áéíóú'");
 }
 
 static void testQuote(void)
