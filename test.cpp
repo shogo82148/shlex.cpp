@@ -29,7 +29,9 @@ static void is(const std::string &a, const std::string &b, const char *msg)
   else
   {
     ngCount++;
-    std::cout << "not ok " << testCount << " - " << msg << std::endl;
+    std::cout << "not ok " << testCount << " - " << msg << std::endl
+              << "# Expected: '" << b << "'" << std::endl
+              << "#   Actual: '" << a << "'" << std::endl;
   }
 }
 
