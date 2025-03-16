@@ -17,4 +17,4 @@ OBJ = test.obj shlex.obj
 .PHONY: test
 test: $(OBJ) ## Run tests
 	$(LINK) /out:test.exe $(OBJ)
-	./test.exe
+	test.exe
