@@ -2,6 +2,25 @@
 #include <string>
 #include "shlex.h"
 
+// Test cases are based on Python's shlex module.
+// https://github.com/python/cpython/blob/bf4c1bf344ed1f80c4e8f4fd5b1a8f0e0858777e/Lib/test/test_shlex.py#L137
+
+static std::vector<std::string> split(const std::string &s, char sep)
+{
+  std::vector<std::string> result;
+  std::string::size_type start = 0;
+  for (std::string::size_type i = 0; i < s.size(); i++)
+  {
+    if (s[i] == sep)
+    {
+      result.push_back(s.substr(start, i - start));
+      start = i + 1;
+    }
+  }
+  result.push_back(s.substr(start));
+  return result;
+}
+
 static int testCount = 0;
 static int ngCount = 0;
 
@@ -51,6 +70,40 @@ static void is(int a, int b, const char *msg)
   }
 }
 
+static void is(const std::vector<std::string> &a, const std::vector<std::string> &b, const char *msg)
+{
+  testCount++;
+  if (a == b)
+  {
+    std::cout << "ok " << testCount << " - " << msg << std::endl;
+  }
+  else
+  {
+    ngCount++;
+    std::cout << "not ok " << testCount << " - " << msg << std::endl
+              << "# Expected: [";
+    for (size_t i = 0; i < b.size(); i++)
+    {
+      if (i > 0)
+      {
+        std::cout << ", ";
+      }
+      std::cout << "'" << b[i] << "'";
+    }
+    std::cout << "]" << std::endl
+              << "#   Actual: [";
+    for (size_t i = 0; i < a.size(); i++)
+    {
+      if (i > 0)
+      {
+        std::cout << ", ";
+      }
+      std::cout << "'" << a[i] << "'";
+    }
+    std::cout << "]" << std::endl;
+  }
+}
+
 static void testOptional(void)
 {
   shlex::optional<int> a;
@@ -81,6 +134,16 @@ static void testOptional(void)
   g = 42;
   ok(g, "optional<int> value assignment operator");
   is(g.value(), 42, "optional<int> value assignment operator");
+}
+
+static void testSplit(void)
+{
+  is(shlex::split("x"), split("x", '|'), "split empty string");
+  is(shlex::split("foo bar"), split("foo|bar", '|'), "split foo bar");
+  is(shlex::split(" foo bar"), split("foo|bar", '|'), "split ' foo bar'");
+  is(shlex::split(" foo bar "), split("foo|bar", '|'), "split ' foo bar '");
+  is(shlex::split("foo   bar    bla     fasel"), split("foo|bar|bla|fasel", '|'), "split foo   bar    bla     fasel");
+  is(shlex::split("x y  z              xxxx"), split("x|y|z|xxxx", '|'), "split x y  z              xxxx");
 }
 
 static void testQuote(void)
@@ -114,6 +177,7 @@ static void testQuote(void)
 int main(void)
 {
   testOptional();
+  testSplit();
   testQuote();
 
   std::cout << "1.." << testCount << std::endl;

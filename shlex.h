@@ -104,7 +104,23 @@ namespace shlex
   template <typename T>
   const typename optional<T>::nullopt_t optional<T>::nullopt = optional<T>::nullopt_t();
 
-  // returns a shell-escaped version of the string s
+  class shlex
+  {
+  private:
+    std::string s_;
+    std::string::size_type pos_;
+
+  public:
+    shlex(const std::string &s) : s_(s), pos_(0) {}
+
+    // get a token from the input string.
+    optional<std::string> get_token();
+  };
+
+  // split the string s using shell-like syntax.
+  std::vector<std::string> split(const std::string &s);
+
+  // returns a shell-escaped version of the string s.
   std::string quote(const std::string &s);
 }
 
