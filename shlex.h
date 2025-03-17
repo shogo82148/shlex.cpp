@@ -109,12 +109,15 @@ namespace shlex
   private:
     std::string s_;
     std::string::size_type pos_;
+    std::string token_;
+    char state_;
 
   public:
-    shlex(const std::string &s) : s_(s), pos_(0) {}
+    shlex(const std::string &s) : s_(s), pos_(0), token_(""), state_(' ') {}
 
     // get a token from the input string.
     optional<std::string> get_token();
+    optional<std::string> read_token();
   };
 
   // split the string s using shell-like syntax.

@@ -1,40 +1,141 @@
 #include "shlex.h"
+#include <vector>
+#include <string>
+#include <stdexcept>
 
 // Implementation is based on Python's shlex module.
 // https://github.com/python/cpython/blob/10cbd1fe88d1095a03cce24fb126d479668a67c3/Lib/shlex.py#L253
 
 shlex::optional<std::string> shlex::shlex::get_token()
 {
-  while (pos_ < s_.size() && s_[pos_] == ' ')
+  return read_token();
+}
+
+shlex::optional<std::string> shlex::shlex::read_token()
+{
+  bool quoted = false;
+  char escapedstate = ' ';
+  while (true)
   {
-    ++pos_;
-  }
-  if (pos_ == s_.size())
-  {
-    return optional<std::string>::nullopt;
-  }
-  std::string::size_type start = pos_;
-  if (s_[pos_] == '\'')
-  {
-    ++pos_;
-    while (pos_ < s_.size() && s_[pos_] != '\'')
+    const bool eof = pos_ >= s_.size();
+    const char nextchar = eof ? '\0' : s_[pos_];
+    pos_++;
+    if (state_ == '\0')
     {
-      ++pos_;
+      token_ = "";
+      break;
     }
-    if (pos_ == s_.size())
+    else if (state_ == ' ')
     {
-      throw std::runtime_error("unterminated single quote");
+      if (eof)
+      {
+        state_ = '\0';
+        break;
+      }
+      else if (nextchar == ' ' || nextchar == '\t' || nextchar == '\r' || nextchar == '\n')
+      {
+        if (!token_.empty() || quoted)
+        {
+          break; // emit current token
+        }
+        else
+        {
+          continue;
+        }
+      }
+      else if (nextchar == '\\')
+      {
+        escapedstate = 'a';
+        state_ = nextchar;
+      }
+      else if (nextchar == '\'' || nextchar == '"')
+      {
+        state_ = nextchar;
+      }
+      else
+      {
+        token_ = nextchar;
+        state_ = 'a';
+      }
     }
-    ++pos_;
+    else if (state_ == '\'' || state_ == '"')
+    {
+      quoted = true;
+      if (eof)
+      {
+        throw std::runtime_error("no closing quotation");
+      }
+      if (nextchar == state_)
+      {
+        state_ = 'a';
+      }
+      else if (nextchar == '\\' && state_ == '"')
+      {
+        escapedstate = state_;
+        state_ = nextchar;
+      }
+      else
+      {
+        token_ += nextchar;
+      }
+    }
+    else if (state_ == '\\')
+    {
+      if (eof)
+      {
+        throw std::runtime_error("no escaped character");
+      }
+      // In posix shells, only the quote itself or the escape
+      // character may be escaped within quotes.
+      if ((escapedstate == '\'' || escapedstate == '"') && nextchar != state_ && nextchar != escapedstate)
+      {
+        token_ += state_;
+      }
+      token_ += nextchar;
+      state_ = escapedstate;
+    }
+    else if (state_ == 'a')
+    {
+      if (eof)
+      {
+        state_ = '\0';
+        break;
+      }
+      else if (nextchar == ' ' || nextchar == '\t' || nextchar == '\r' || nextchar == '\n')
+      {
+        state_ = ' ';
+        if (!token_.empty() || quoted)
+        {
+          break; // emit current token
+        }
+        else
+        {
+          continue;
+        }
+      }
+      else if (nextchar == '\'' || nextchar == '"')
+      {
+        state_ = nextchar;
+      }
+      else if (nextchar == '\\')
+      {
+        escapedstate = 'a';
+        state_ = nextchar;
+      }
+      else
+      {
+        token_ += nextchar;
+      }
+    }
   }
-  else
+
+  std::string result = token_;
+  token_.clear();
+  if (!quoted && result.empty())
   {
-    while (pos_ < s_.size() && s_[pos_] != ' ')
-    {
-      ++pos_;
-    }
+    return optional<std::string>();
   }
-  return s_.substr(start, pos_ - start);
+  return optional<std::string>(result);
 }
 
 std::vector<std::string> shlex::split(const std::string &s)
