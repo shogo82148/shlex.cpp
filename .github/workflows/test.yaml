@@ -7,7 +7,7 @@ jobs:
   linux:
     runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.4.0
       - run: g++ --version
       - name: run test
         run: make test
@@ -15,7 +15,7 @@ jobs:
   macos:
     runs-on: xcode-27
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.4.0
       - run: g++ --version
       - name: run test
         run: make test
@@ -23,7 +23,7 @@ jobs:
   windows:
     runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.4.0
       - name: run test
         shell: cmd
         run: |
