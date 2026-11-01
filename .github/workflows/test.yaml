@@ -27,5 +27,6 @@ jobs:
       - name: run test
         shell: cmd
         run: |
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do set VSINSTALLDIR=%%i
+          call "%VSINSTALLDIR%\VC\Auxiliary\Build\vcvarsall.bat" x64 || exit /b 1
           nmake -f Makefile.msvc test
