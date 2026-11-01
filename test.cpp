@@ -232,6 +232,10 @@ static void testQuote(void)
   is(shlex::quote("test\xc3\xa9'name'"), "'test\xc3\xa9'\"'\"'name'\"'\"''", "quote e + acute accent + 'name'");
   is(shlex::quote("test\xc3\xa0'name'"), "'test\xc3\xa0'\"'\"'name'\"'\"''", "quote a + grave + 'name'");
   is(shlex::quote("test\xc3\x9f'name'"), "'test\xc3\x9f'\"'\"'name'\"'\"''", "quote sharp s + 'name'");
+
+  is(shlex::quote("'"), "''\"'\"''", "quote single quote");
+  is(shlex::quote("a'b"), "'a'\"'\"'b'", "quote a'b");
+  is(shlex::quote("test'name'"), "'test'\"'\"'name'\"'\"''", "quote test'name'");
 }
 
 int main(void)
