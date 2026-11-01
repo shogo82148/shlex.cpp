@@ -5,7 +5,7 @@ on:
 
 jobs:
   linux:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v4
       - run: g++ --version
@@ -13,7 +13,7 @@ jobs:
         run: make test
 
   macos:
-    runs-on: macos-13
+    runs-on: xcode-27
     steps:
       - uses: actions/checkout@v4
       - run: g++ --version
@@ -21,7 +21,7 @@ jobs:
         run: make test
 
   windows:
-    runs-on: windows-2019
+    runs-on: windows-2025
     steps:
       - uses: actions/checkout@v4
       - name: run test
